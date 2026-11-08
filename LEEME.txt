@@ -1,0 +1,19 @@
+AGENDA — versión Firebase
+
+Incluye acceso Google, Firestore y cifrado AES-GCM del contenido antes de enviarlo a Firestore.
+
+PASOS PENDIENTES:
+1. En Firebase Console > Compilación > Firestore Database > Crear base de datos.
+2. Elegir modo producción y una ubicación adecuada (por ejemplo europe-west).
+3. En la pestaña Reglas, sustituir por el contenido de firestore.rules y publicar.
+4. En Authentication > Configuración > Dominios autorizados, añadir el dominio donde se publique la web.
+5. Publicar estos archivos en un hosting HTTPS (por ejemplo Firebase Hosting o GitHub Pages).
+6. En iPhone, abrir la URL publicada en Safari y Añadir a pantalla de inicio.
+
+CIFRADO:
+- La frase de cifrado debe tener al menos 12 caracteres y no ser la contraseña de Google.
+- Se usa PBKDF2-SHA-256 (310.000 iteraciones) + AES-256-GCM en el navegador.
+- Firebase solo recibe salt, IV y texto cifrado. La frase no se envía ni se almacena.
+- Si olvidas la frase, no se pueden recuperar los registros cifrados.
+- Esta versión no incluye todavía recuperación de frase ni exportación de emergencia.
+- Conserva la frase en un gestor de contraseñas seguro.
