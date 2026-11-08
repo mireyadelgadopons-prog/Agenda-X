@@ -28,13 +28,14 @@ dialog{border:0;border-radius:22px;padding:0;width:min(94vw,520px);max-height:90
 <script>
 const firebaseConfig={apiKey:"AIzaSyDSe_yaeGkTHsrab7k1SsONRbtGbO76-Ws",authDomain:"agenda-c0029.firebaseapp.com",projectId:"agenda-c0029",storageBucket:"agenda-c0029.firebasestorage.app",messagingSenderId:"18757558967",appId:"1:18757558967:web:9e22dffefcdd4df790e332"};
 firebase.initializeApp(firebaseConfig);const auth=firebase.auth(),db=firebase.firestore(),provider=new firebase.auth.GoogleAuthProvider();
+auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(e=>console.warn('No se pudo fijar la persistencia:',e));
 const $=id=>document.getElementById(id);let user=null,records=[],cursor=new Date();cursor.setDate(1);let selected=iso(new Date()),editing=null,key=null,salt=null,cloudDoc=null;
 function iso(d){return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 for(let i=1;i<=10;i++)['pre','sex'].forEach(id=>{let o=document.createElement('option');o.value=i;o.textContent=i;$(id).appendChild(o)});
-$('loginBtn').onclick=()=>auth.signInWithRedirect(provider).catch(e=>$('authMsg').textContent='No se pudo iniciar sesión: '+e.message);
+$('loginBtn').onclick=async()=>{try{$('authMsg').textContent='Abriendo Google…';await auth.signInWithPopup(provider);}catch(e){console.error('Error de acceso Google:',e);$('authMsg').textContent='No se pudo iniciar sesión: '+(e.code||e.message);}};
 $('logoutBtn').onclick=()=>auth.signOut();
-auth.getRedirectResult().catch(e=>$('authMsg').textContent='Error de acceso: '+e.message);
+// Inicio de sesión mediante ventana emergente; no se usa redirección.
 auth.onAuthStateChanged(async u=>{user=u;key=null;records=[];$('appPanel').classList.add('hidden');$('loginPanel').classList.toggle('hidden',!!u);$('vaultPanel').classList.toggle('hidden',!u);$('syncState').textContent=u?'Cuenta conectada':'Sin iniciar sesión';if(u){$('welcome').textContent='Hola, '+(u.displayName||'');$('vaultMsg').textContent='Comprobando tu caja cifrada…';try{cloudDoc=await db.collection('users').doc(u.uid).collection('private').doc('vault').get();$('vaultMsg').textContent=cloudDoc.exists?'Introduce tu frase para descifrar tus registros.':'Crea una frase de cifrado para tu nueva agenda.';}catch(e){$('vaultMsg').textContent='No se pudo consultar la nube. Revisa las reglas de Firestore: '+e.message;}}});
 const enc=new TextEncoder(),dec=new TextDecoder();
 function b64(bytes){return btoa(String.fromCharCode(...new Uint8Array(bytes)))}
